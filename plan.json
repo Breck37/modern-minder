@@ -1,0 +1,367 @@
+[
+  {
+    "title": "Clean up Expo template boilerplate",
+    "description": "Remove the default tab-based template screens and placeholder components that ship with Expo Router so we start from a clean slate.",
+    "steps": [
+      "Delete app/(tabs)/index.tsx, app/(tabs)/two.tsx, app/(tabs)/_layout.tsx",
+      "Delete app/modal.tsx",
+      "Delete components/EditScreenInfo.tsx, components/StyledText.tsx, components/Themed.tsx, components/ExternalLink.tsx",
+      "Delete constants/Colors.ts and hooks/useColorScheme.ts if they exist",
+      "Replace app/_layout.tsx with a minimal root Stack layout that imports global.css"
+    ],
+    "done": true
+  },
+  {
+    "title": "Set up folder structure",
+    "description": "Create the directory skeleton for the project so every future file has a clear home.",
+    "steps": [
+      "Create app/(onboarding)/ for onboarding screens",
+      "Create app/(app)/ for the main authenticated/post-onboarding screens",
+      "Create components/ui/ for primitive reusable components (Button, Input, etc.)",
+      "Create components/reminders/ for reminder-specific components (ReminderCard, CategoryBadge)",
+      "Create lib/ for utility and service modules (ai.ts, notifications.ts, timezone.ts)",
+      "Create db/ for SQLite setup and query functions (client.ts, reminders.ts)",
+      "Create store/ for Zustand stores (reminders.ts)"
+    ],
+    "done": true
+  },
+  {
+    "title": "Initialize SQLite database",
+    "description": "Set up expo-sqlite and run the initial schema migration on app start.",
+    "steps": [
+      "Create db/client.ts — open the database with expo-sqlite openDatabaseAsync",
+      "Write and run a CREATE TABLE IF NOT EXISTS migration for the reminders table with all fields from the data model",
+      "Export a getDb() helper that returns the shared database instance",
+      "Call the migration in the root _layout.tsx before rendering children"
+    ],
+    "done": true
+  },
+  {
+    "title": "Create reminder CRUD functions",
+    "description": "Write typed query functions for all database operations the app needs.",
+    "steps": [
+      "Create db/reminders.ts",
+      "Write insertReminder(reminder) — inserts a new row, returns the inserted id",
+      "Write getReminderById(id) — returns a single reminder",
+      "Write getAllReminders() — returns all non-deleted reminders ordered by scheduledAt",
+      "Write updateReminder(id, fields) — partial update",
+      "Write markComplete(id) — sets completedAt to now",
+      "Write deleteReminder(id) — hard delete",
+      "Define a Reminder TypeScript type in types/reminder.ts and use it throughout"
+    ],
+    "done": true
+  },
+  {
+    "title": "Set up Zustand reminders store",
+    "description": "Create a Zustand store that holds reminders in memory and syncs with SQLite.",
+    "steps": [
+      "Create store/reminders.ts",
+      "State: reminders array, isLoading boolean",
+      "Action: loadReminders() — calls getAllReminders() and sets state",
+      "Action: addReminder(reminder) — calls insertReminder(), then reloads",
+      "Action: completeReminder(id) — calls markComplete(), then reloads",
+      "Action: removeReminder(id) — calls deleteReminder(), then reloads",
+      "Call loadReminders() on app startup in root _layout.tsx"
+    ],
+    "done": true
+  },
+  {
+    "title": "Build ReminderCard component",
+    "description": "A single card that displays a reminder in the list — title, category, scheduled time, and status.",
+    "steps": [
+      "Create components/reminders/ReminderCard.tsx",
+      "Props: reminder (Reminder type), onPress, onComplete",
+      "Show title, formatted scheduledAt date/time, and category badge",
+      "Strike-through / muted style if completedAt is set",
+      "Tap the card → onPress (navigate to detail)",
+      "Swipe right or checkmark button → onComplete"
+    ],
+    "done": true
+  },
+  {
+    "title": "Build CategoryBadge component",
+    "description": "A small pill/badge that displays a reminder's category with a distinct color per category.",
+    "steps": [
+      "Create components/reminders/CategoryBadge.tsx",
+      "Props: category (enum value)",
+      "Map each category to a Tailwind background + text color pair",
+      "Render as a small rounded pill with the category label"
+    ],
+    "done": true
+  },
+  {
+    "title": "Build Home screen — reminder list",
+    "description": "The main screen showing upcoming reminders, using the Zustand store.",
+    "steps": [
+      "Create app/(app)/index.tsx",
+      "Read reminders from Zustand store",
+      "Render a FlatList of ReminderCard components",
+      "Show upcoming reminders by default (completedAt is null)",
+      "Add a large floating mic button (FAB) in the bottom center to navigate to Voice Capture"
+    ],
+    "done": true
+  },
+  {
+    "title": "Add empty state to Home screen",
+    "description": "Show a helpful prompt when there are no reminders in the list.",
+    "steps": [
+      "When the filtered reminders list is empty, render an empty state view",
+      "Include a short message like 'Tap the mic to add your first reminder'",
+      "Include the mic icon for visual reinforcement"
+    ],
+    "done": true
+  },
+  {
+    "title": "Add category filter to Home screen",
+    "description": "Let the user filter the reminder list to a single category.",
+    "steps": [
+      "Add a horizontal scrollable row of category chips above the list",
+      "Include an 'All' chip as the default selected state",
+      "Tapping a chip filters the list to that category only",
+      "Selected chip has a highlighted/filled style"
+    ],
+    "done": true
+  },
+  {
+    "title": "Add search bar to Home screen",
+    "description": "Let the user filter reminders by typing text.",
+    "steps": [
+      "Add a TextInput search bar at the top of the Home screen",
+      "Filter the reminders list by matching the query against reminder title (case-insensitive)",
+      "Clear button shown when search has text",
+      "Search works in combination with the active category filter"
+    ],
+    "done": true
+  },
+  {
+    "title": "Add completed reminders toggle to Home screen",
+    "description": "Allow the user to view completed reminders in the same list.",
+    "steps": [
+      "Add a 'Show Completed' toggle or tab at the top of the list",
+      "When active, show reminders where completedAt is not null",
+      "Completed reminders should appear visually distinct (muted, strikethrough)"
+    ],
+    "done": true
+  },
+  {
+    "title": "Build Voice Capture screen — UI",
+    "description": "The screen the user sees while recording. Large mic button, clear recording states.",
+    "steps": [
+      "Create app/(app)/voice-capture.tsx",
+      "Show a large centered mic button",
+      "Three visual states: idle, listening, processing",
+      "Listening state: animated pulse ring around the mic button",
+      "Processing state: spinner / loading indicator while AI parses",
+      "Show a live transcript text area that updates as words are recognized"
+    ],
+    "done": false
+  },
+  {
+    "title": "Integrate expo-speech-recognition",
+    "description": "Wire the mic button to the device speech recognizer and capture the transcript.",
+    "steps": [
+      "Request microphone and speech recognition permissions (if not already granted)",
+      "On mic button press: start recognition with useSpeechRecognitionEvent or ExpoSpeechRecognitionModule",
+      "Update live transcript state on each 'result' event",
+      "On 'end' event: set state to processing and pass final transcript to AI parser",
+      "Handle 'error' event with a user-visible error message"
+    ],
+    "done": false
+  },
+  {
+    "title": "Auto-stop recording after silence",
+    "description": "Stop the recognizer automatically when the user stops speaking so they don't have to tap again.",
+    "steps": [
+      "Use the continuous mode of expo-speech-recognition if available, or set a silence timeout",
+      "After ~2 seconds of no new words in the transcript, stop recognition",
+      "Transition to processing state immediately after stopping"
+    ],
+    "done": false
+  },
+  {
+    "title": "Create AI parsing service",
+    "description": "Send the transcript to the AI API and get back a structured reminder object.",
+    "steps": [
+      "Create lib/ai.ts",
+      "Write parseTranscript(transcript: string): Promise<ParsedReminder> function",
+      "Call the Claude or OpenAI API with the transcript",
+      "Return the parsed fields: title, category, scheduledAt, repeatPattern, priority, confidence",
+      "Handle API errors gracefully — return a low-confidence fallback so the review screen is shown"
+    ],
+    "done": false
+  },
+  {
+    "title": "Write the AI parsing prompt",
+    "description": "Design the prompt that instructs the model to extract reminder data from a natural language transcript.",
+    "steps": [
+      "Prompt must return valid JSON with: title, category, scheduledAt (ISO), repeatPattern, priority, motivationStyle, confidence (0–1)",
+      "Include time resolution rules: no time → 9 AM, 'tonight' → 7 PM, 'morning' → 9 AM, 'afternoon' → 2 PM, 'evening' → 7 PM",
+      "Include the list of valid categories: Personal, Work, Health, Bills, Family, Errands, Fitness, Social, Other",
+      "Include examples of high-confidence and low-confidence parses",
+      "Instruct the model to set confidence < 0.75 when date/time is ambiguous or missing"
+    ],
+    "done": false
+  },
+  {
+    "title": "Implement confidence-based routing after AI parse",
+    "description": "After the AI returns a result, either auto-save the reminder or send the user to the review screen.",
+    "steps": [
+      "If confidence >= 0.75: save reminder to DB, schedule notification, show a toast, navigate back to Home",
+      "If confidence < 0.75: navigate to Reminder Review screen passing the parsed data as route params",
+      "Pass the original transcript along as context for the review screen"
+    ],
+    "done": false
+  },
+  {
+    "title": "Build Reminder Review screen",
+    "description": "An editable form shown when AI confidence is low, letting the user correct the parsed fields before saving.",
+    "steps": [
+      "Create app/(app)/reminder-review.tsx",
+      "Pre-populate fields from the parsed reminder passed via route params",
+      "Fields: title (TextInput), category (Picker/select), date (DatePicker), time (TimePicker), repeat (select), priority (select)",
+      "Confirm button: validate required fields, save to DB, schedule notification, navigate to Home with toast",
+      "Cancel button: discard and return to Home"
+    ],
+    "done": false
+  },
+  {
+    "title": "Build Reminder Detail screen",
+    "description": "A read-only (with edit affordance) view of a single reminder's full details.",
+    "steps": [
+      "Create app/(app)/reminder/[id].tsx",
+      "Load reminder by id from the Zustand store or DB",
+      "Display all fields: title, notes, category, priority, scheduledAt, repeatPattern, nagEnabled",
+      "Buttons: Edit (opens editable form), Mark Complete, Delete",
+      "If already completed, show completedAt timestamp instead of the complete button"
+    ],
+    "done": false
+  },
+  {
+    "title": "Inline edit on Reminder Detail screen",
+    "description": "Allow the user to edit a reminder's fields directly from the detail screen.",
+    "steps": [
+      "Add an Edit button that switches the detail screen into edit mode",
+      "In edit mode, fields become editable inputs (same layout as Reminder Review screen)",
+      "Save button: call updateReminder(), reschedule notification, exit edit mode",
+      "Cancel button: discard changes, exit edit mode"
+    ],
+    "done": false
+  },
+  {
+    "title": "Configure expo-notifications",
+    "description": "Set up the notifications module so the app can send and receive local notifications.",
+    "steps": [
+      "Create lib/notifications.ts",
+      "Call Notifications.requestPermissionsAsync() — export a requestPermissions() helper",
+      "Set notification handler (setNotificationHandler) to show alerts with sound while app is foregrounded",
+      "Set up a notification response listener in the root layout to handle taps when app is backgrounded/killed"
+    ],
+    "done": false
+  },
+  {
+    "title": "Schedule a local notification for a reminder",
+    "description": "When a reminder is saved, schedule the notification to fire at the correct time.",
+    "steps": [
+      "In lib/notifications.ts, write scheduleReminder(reminder: Reminder): Promise<string>",
+      "Use Notifications.scheduleNotificationAsync with a date trigger set to reminder.scheduledAt",
+      "Notification body: reminder.title",
+      "Notification categoryIdentifier: 'REMINDER_ACTIONS' (for action buttons)",
+      "Store the returned notification identifier in the reminder row (add notificationId column if needed)",
+      "Export cancelReminder(notificationId) that calls Notifications.cancelScheduledNotificationAsync"
+    ],
+    "done": false
+  },
+  {
+    "title": "Register notification action buttons",
+    "description": "Add Complete, Snooze 10 min, and Snooze 30 min as tappable actions on the notification.",
+    "steps": [
+      "Call Notifications.setNotificationCategoryAsync('REMINDER_ACTIONS', [...]) with three actions",
+      "Action 1: identifier 'COMPLETE', title 'Done'",
+      "Action 2: identifier 'SNOOZE_10', title 'Snooze 10 min'",
+      "Action 3: identifier 'SNOOZE_30', title 'Snooze 30 min'",
+      "Register the category in lib/notifications.ts and call it once at app startup"
+    ],
+    "done": false
+  },
+  {
+    "title": "Handle notification action responses",
+    "description": "React to the user tapping Complete, Snooze 10, or Snooze 30 on a notification.",
+    "steps": [
+      "In the notification response listener, read response.notification.request.content.data.reminderId",
+      "If action is 'COMPLETE': call markComplete(reminderId), cancel any nag notifications",
+      "If action is 'SNOOZE_10': schedule a new one-off notification 10 minutes from now",
+      "If action is 'SNOOZE_30': schedule a new one-off notification 30 minutes from now",
+      "Reload the Zustand store after any action"
+    ],
+    "done": false
+  },
+  {
+    "title": "Implement firm reminder nag scheduling",
+    "description": "For high and urgent priority reminders, schedule follow-up notifications if the reminder is not completed.",
+    "steps": [
+      "In lib/notifications.ts, write scheduleNags(reminder: Reminder)",
+      "High priority: schedule 6 follow-up notifications every 30 minutes after scheduledAt",
+      "Urgent priority: schedule 6 follow-up notifications every 10 minutes after scheduledAt",
+      "Each nag notification has the same REMINDER_ACTIONS category",
+      "Store nag notification identifiers — save as a JSON array in the reminder row (add nagNotificationIds column)",
+      "Call scheduleNags() immediately after scheduleReminder() if nagEnabled is true"
+    ],
+    "done": false
+  },
+  {
+    "title": "Cancel nag notifications on completion",
+    "description": "When a reminder is marked complete, cancel all its pending nag notifications.",
+    "steps": [
+      "In markComplete() DB function (or Zustand action), read nagNotificationIds from the reminder row",
+      "Call Notifications.cancelScheduledNotificationAsync() for each nag id",
+      "Clear the nagNotificationIds field in the DB row after cancelling"
+    ],
+    "done": false
+  },
+  {
+    "title": "Resolve device timezone for scheduling",
+    "description": "Use the device's current timezone when interpreting relative times from voice input.",
+    "steps": [
+      "Create lib/timezone.ts",
+      "Use Intl.DateTimeFormat().resolvedOptions().timeZone as the primary source (no permission needed)",
+      "If expo-location permission is granted, optionally verify/override with location-derived timezone",
+      "Export getTimezone(): string that returns the IANA timezone string",
+      "Use getTimezone() in the AI prompt and when scheduling notifications"
+    ],
+    "done": false
+  },
+  {
+    "title": "Build Onboarding screen",
+    "description": "A simple screen shown on first launch explaining the app and requesting permissions.",
+    "steps": [
+      "Create app/(onboarding)/index.tsx",
+      "Show app name, one-sentence description, and a sample voice command",
+      "Explain the firm reminder concept in one line",
+      "Show a 'Get Started' button that requests mic and notification permissions then navigates to Home",
+      "If permissions are denied, show a message explaining how to enable them in Settings"
+    ],
+    "done": false
+  },
+  {
+    "title": "First-run detection — show onboarding once",
+    "description": "Only show the onboarding screen the very first time the app is launched.",
+    "steps": [
+      "On app startup, check AsyncStorage for a 'hasOnboarded' key",
+      "If not set: redirect to the onboarding screen",
+      "After 'Get Started' is tapped: set 'hasOnboarded' = true in AsyncStorage, then navigate to Home",
+      "If already set: skip onboarding and go straight to Home"
+    ],
+    "done": false
+  },
+  {
+    "title": "Show toast after auto-saving a reminder",
+    "description": "Give the user immediate feedback when a high-confidence reminder is saved without the review screen.",
+    "steps": [
+      "Add a simple toast/snackbar component or use a library (e.g. react-native-toast-message)",
+      "Trigger it with the reminder title and scheduled time after a successful auto-save",
+      "Toast should auto-dismiss after ~3 seconds",
+      "Example: 'Reminder set for tomorrow at 9:00 AM'"
+    ],
+    "done": false
+  }
+]
