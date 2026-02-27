@@ -5,14 +5,24 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { runMigrations } from '@/db/client';
+import { useRemindersStore } from '@/store/reminders';
+
 export { ErrorBoundary } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const loadReminders = useRemindersStore((s) => s.loadReminders);
+
   useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
+    async function init() {
+      await runMigrations();
+      await loadReminders();
+      SplashScreen.hideAsync();
+    }
+    init();
+  }, [loadReminders]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
