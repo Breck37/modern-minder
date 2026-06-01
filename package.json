@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "@types/react": "~19.2.14",
+    "@types/react": "~19.2.15",
     "eslint": "^10.0.3",
     "eslint-config-expo": "~10.0.0",
     "jest": "^30.3.0",
