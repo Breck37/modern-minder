@@ -5,35 +5,41 @@ updates:
     schedule:
       interval: 'weekly'
       day: 'monday'
+
+    # Expo SDK owns the versions of these packages. Bumping them independently
+    # breaks the build (e.g. react-native 0.81 -> 0.88 under SDK 54 made
+    # jest-expo unable to resolve react-native/jest-preset).
+    # They move ONLY via `npx expo install --fix` during an SDK upgrade.
+    ignore:
+      - dependency-name: 'expo'
+      - dependency-name: 'expo-*'
+      - dependency-name: 'react'
+      - dependency-name: 'react-dom'
+      - dependency-name: 'react-test-renderer'
+      - dependency-name: '@types/react'
+      - dependency-name: 'react-native'
+      - dependency-name: 'react-native-*'
+      - dependency-name: 'nativewind'
+      - dependency-name: 'jest'
+      - dependency-name: 'jest-expo'
+      - dependency-name: 'eslint'
+      - dependency-name: 'eslint-config-expo'
+      - dependency-name: 'typescript'
+      - dependency-name: '@react-navigation/*'
+
     groups:
-      expo:
+      tooling:
         patterns:
-          - 'expo'
-          - 'expo-*'
-          - 'jest-expo'
-          - 'eslint-config-expo'
-      react-native:
-        patterns:
-          - 'react-native'
-          - 'react-native-*'
-          - 'nativewind'
-      react:
-        patterns:
-          - 'react'
-          - 'react-dom'
-          - 'react-test-renderer'
-          - '@types/react'
-      dev-dependencies:
-        dependency-type: 'development'
-        exclude-patterns:
-          - 'jest-expo'
-          - 'eslint-config-expo'
-          - 'react-test-renderer'
-          - '@types/react'
-    open-pull-requests-limit: 10
+          - '*'
+    open-pull-requests-limit: 5
 
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
       interval: 'weekly'
       day: 'monday'
+    groups:
+      actions:
+        patterns:
+          - '*'
+    open-pull-requests-limit: 5
