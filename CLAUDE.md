@@ -53,3 +53,12 @@ no Xcode, no simulator. What does work here:
   Expo's hosted macOS machines and needs no local laptop
 
 Always commit and push before the session ends — containers are ephemeral.
+
+## Known quirk: expo-doctor in cloud sessions
+
+Two `expo-doctor` checks (Expo config schema, React Native Directory) call
+external APIs with Node's `fetch`, which does not honour the cloud container's
+HTTPS proxy, so they report `ENOTFOUND exp.host` here. The host is reachable
+(`curl https://exp.host` returns 200) — it is a proxy-awareness quirk, not a
+project fault. The check that matters, "packages match versions required by
+installed Expo SDK", runs offline and must stay green.

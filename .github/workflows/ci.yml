@@ -37,6 +37,12 @@ jobs:
   expo-deps:
     name: Expo Dependency Check
     runs-on: ubuntu-latest
+    # Informational: two of expo-doctor's checks call the Expo API and the
+    # React Native Directory, so they can fail on network flakiness rather
+    # than a real problem. The hard guard against SDK drift is the ignore
+    # list in .github/dependabot.yml; this job surfaces drift, it does not
+    # block merges.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
