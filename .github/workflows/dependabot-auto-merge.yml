@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Fetch Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@v3
 
       # Patch only. Minor bumps are NOT auto-merged: in an Expo project a
       # semver-minor on an SDK-managed package (e.g. react-native 0.81 -> 0.88)
