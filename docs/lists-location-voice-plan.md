@@ -1,6 +1,6 @@
 # Plan: Lists, Location Alerts & Spoken Replies
 
-Extends the MVP plan in the [README](../README.md). Everything there still stands; this adds three features on top of it.
+Extends the MVP plan in the [README](../README.md). Everything there still stands; this adds three features on top of it, plus a web roadmap (§4).
 
 1. **Voice-managed lists** — _"Add avocados and eggs to my shopping list"_, _"Add a circular saw to my wants list"_
 2. **Location-aware list alerts** — _"Looks like you're at a grocery store. Tap to see your shopping list."_ / _"You're at Walmart. You need Advil, which they should carry."_
@@ -225,15 +225,49 @@ There's no affordable, reliable API for per-store stock. The plan is a **categor
 
 ---
 
+## 4. Web (future)
+
+Two separate things, very different in size.
+
+### 4a. Marketing page (small)
+
+A single static page: what the app does (voice capture, lists, store alerts, spoken replies), a few screenshots, and an App Store link once the app is published.
+
+- No accounts, no data, no backend. Can live anywhere (Vercel, Netlify, GitHub Pages).
+- Tailwind for styling. Can be built any time; it only blocks on screenshots and the store listing.
+- Needs a privacy policy page anyway for App Store review (location + mic), so host it here.
+
+### 4b. Web companion app (large)
+
+A website that shows and edits the same reminders and lists, without voice or notifications.
+
+This needs what the MVP deliberately left out: **user accounts and cloud sync**. The phone stays offline-first (SQLite is still the source the app reads from) and syncs changes up/down when online.
+
+| Option                             | Notes                                                                                                                                                            |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Supabase** (Postgres + auth)     | **Recommended.** Free tier fits a personal app; auth, row-level security and realtime built in. Web app can read Postgres directly. Sync logic is ours to write. |
+| Supabase + PowerSync / ElectricSQL | Off-the-shelf SQLite ↔ Postgres sync. Less code, another service (and cost) to depend on.                                                                        |
+| Firebase (Firestore)               | Has offline support, but it's a document DB, so the SQLite model doesn't map cleanly.                                                                            |
+
+The same backend would also be the natural home for the API-key proxy mentioned above (AI parsing, places lookups).
+
+**Make the local data sync-ready now, even before sync exists.** It costs almost nothing today and avoids a painful migration later:
+
+- uuid primary keys (already planned), never auto-increment ids
+- `updatedAt` on every row (already planned) and a `deletedAt` soft-delete column instead of hard deletes
+- a nullable `userId` column on `Reminder`, `List` and `Place`
+
+**When to add sync:** after lists (phase 1) and before location alerts. Every feature built before sync has to be retrofitted for it, so it gets more expensive the longer it waits. Sharing lists with a partner becomes possible once accounts exist.
+
 ## Changes to the original plan
 
-| Area         | Before                                     | After                                                                             |
-| ------------ | ------------------------------------------ | --------------------------------------------------------------------------------- |
-| Non-goals    | No AI chat interface                       | Still true: spoken replies are one-shot confirmations, not a conversation         |
-| Backend      | None                                       | Still none for lists + TTS. Optional tiny proxy only if a paid places API is used |
-| AI parsing   | Reminder only                              | Intent router (reminders + list commands + item store categories)                 |
-| Permissions  | Mic, notifications, location (when in use) | + Location "Always" (only when user enables location alerts)                      |
-| New packages | —                                          | `expo-task-manager`, `expo-speech`; custom MapKit module in phase 3               |
+| Area         | Before                                     | After                                                                         |
+| ------------ | ------------------------------------------ | ----------------------------------------------------------------------------- |
+| Non-goals    | No AI chat interface                       | Still true: spoken replies are one-shot confirmations, not a conversation     |
+| Backend      | None                                       | None for lists + TTS. Supabase later for accounts, sync and the web companion |
+| AI parsing   | Reminder only                              | Intent router (reminders + list commands + item store categories)             |
+| Permissions  | Mic, notifications, location (when in use) | + Location "Always" (only when user enables location alerts)                  |
+| New packages | —                                          | `expo-task-manager`, `expo-speech`; custom MapKit module in phase 3           |
 
 > Side note: `EXPO_PUBLIC_AI_API_KEY` is bundled into the app and readable by anyone with the binary. Fine for a personal build; if this ships publicly, the same proxy that would hold a places key should hold the AI key too.
 
@@ -243,11 +277,13 @@ Assumes MVP days 1–5 from the README are done first.
 
 | Phase | Scope                                                                                                     |
 | ----- | --------------------------------------------------------------------------------------------------------- |
-| 1     | Lists: tables, Lists + List Detail screens, intent-router parser, add/remove/check/read/clear by voice    |
+| 1     | Lists: tables (sync-ready columns), Lists + List Detail screens, intent-router parser, voice commands     |
+| 1.5   | Accounts + cloud sync (Supabase); marketing page can ship any time in parallel                            |
 | 2     | Spoken replies with `expo-speech`, settings toggle, mic/speech audio handoff                              |
 | 3     | Location alerts with **user-saved places**: Always permission flow, geofencing task, cooldowns, deep link |
 | 4     | Auto store detection on iOS via MapKit POI module + chain category table + 20-region rotation             |
 | 5     | (Optional) Cloud voice and/or Google Places via proxy; Android parity                                     |
+| 6     | Web companion app: view and edit reminders and lists, no voice or notifications                           |
 
 ### Definition of done
 
@@ -261,5 +297,6 @@ Assumes MVP days 1–5 from the README are done first.
 ## Open questions
 
 - Should "Wants" items ever trigger store alerts, or only appear when you open the list? (Plan: off by default.)
-- Share lists with a partner later? That would bring back accounts/sync, which is a big jump; keep out for now.
+- Share lists with a partner? Possible once accounts and sync (phase 1.5) exist.
+- Sync before or after the MVP ships? Plan says right after lists; it could also wait until the app is in the App Store.
 - Android: is it in scope for location alerts, or iOS-only to start?
