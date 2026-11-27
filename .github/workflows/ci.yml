@@ -3,30 +3,52 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-  format:
-    name: Format Check
+  check:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Format Check
+            run: pnpm format:check
+          - name: Lint
+            run: pnpm lint
+          - name: Typecheck
+            run: pnpm typecheck
+          - name: Test
+            run: pnpm test --passWithNoTests
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
+      - run: ${{ matrix.run }}
 
-  test:
-    name: Test
+  # Guards the failure that broke this repo: Expo SDK pins react-native/react
+  # versions, and a stray bump silently breaks the build.
+  expo-deps:
+    name: Expo Dependency Check
     runs-on: ubuntu-latest
+    # Informational: two of expo-doctor's checks call the Expo API and the
+    # React Native Directory, so they can fail on network flakiness rather
+    # than a real problem. The hard guard against SDK drift is the ignore
+    # list in .github/dependabot.yml; this job surfaces drift, it does not
+    # block merges.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test --passWithNoTests
+      - run: npx expo-doctor
