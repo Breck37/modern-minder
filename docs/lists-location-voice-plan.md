@@ -273,7 +273,7 @@ The same backend would also be the natural home for the API-key proxy mentioned 
 
 ## Implementation phases
 
-Assumes MVP days 1–5 from the README are done first.
+Assumes MVP days 1–5 from the README are done first, including the reliable alarm scheduler in [reminder-alarms-plan.md](reminder-alarms-plan.md).
 
 | Phase | Scope                                                                                                     |
 | ----- | --------------------------------------------------------------------------------------------------------- |

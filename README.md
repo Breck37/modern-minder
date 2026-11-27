@@ -4,6 +4,8 @@ A fast, voice-first personal reminder app. Speak a single sentence and have a re
 
 > **Working name**: Nudge / ModernNudge / SolidMinder — branding finalized post-MVP.
 
+> **How reminders stay reliable** (scheduling far ahead, iOS's 64-notification limit, reboots, firm nags, alarm mode): see [docs/reminder-alarms-plan.md](docs/reminder-alarms-plan.md).
+>
 > **Planned post-MVP features**: voice-managed lists, location-aware list alerts, and spoken replies. See [docs/lists-location-voice-plan.md](docs/lists-location-voice-plan.md).
 
 ## Product Goal
